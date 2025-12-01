@@ -196,10 +196,13 @@ export class GitHubAdapter implements IPlatformAdapter {
   }
 
   /**
-   * Check if text contains @remote-agent mention
+   * Check if text contains mention of the configured callsign
    */
   private hasMention(text: string): boolean {
-    return /@remote-agent[\s,:;]/.test(text) || text.trim() === '@remote-agent';
+    // Escape special regex characters for safety
+    const escapedCallsign = this.callsign.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`${escapedCallsign}[\\s,:;]`);
+    return regex.test(text) || text.trim() === this.callsign;
   }
 
   /**
