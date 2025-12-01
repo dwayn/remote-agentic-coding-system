@@ -53,6 +53,7 @@ interface WebhookEvent {
 export class GitHubAdapter implements IPlatformAdapter {
   private octokit: Octokit;
   private webhookSecret: string;
+  private callsign: string;
 
   constructor(token: string, webhookSecret: string) {
     this.octokit = new Octokit({ auth: token });
