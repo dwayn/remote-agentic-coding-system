@@ -64,7 +64,12 @@ async function main(): Promise<void> {
   // Initialize GitHub adapter (conditional)
   let github: GitHubAdapter | null = null;
   if (process.env.GITHUB_TOKEN && process.env.WEBHOOK_SECRET) {
-    github = new GitHubAdapter(process.env.GITHUB_TOKEN, process.env.WEBHOOK_SECRET);
+    const callsign = process.env.GITHUB_CALLSIGN; // Optional - will use default if not set
+    github = new GitHubAdapter(
+      process.env.GITHUB_TOKEN,
+      process.env.WEBHOOK_SECRET,
+      callsign
+    );
     await github.start();
   } else {
     console.log('[GitHub] Adapter not initialized (missing GITHUB_TOKEN or WEBHOOK_SECRET)');
