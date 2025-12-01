@@ -325,6 +325,19 @@ GITHUB_STREAMING_MODE=batch  # batch (default) | stream
 
 **For streaming mode details, see [Advanced Configuration](#advanced-configuration).**
 
+**GitHub Agent Callsign (Optional):**
+
+```bash
+GITHUB_CALLSIGN=@remote-agent  # Default: @remote-agent
+```
+
+Customize the mention trigger for GitHub comments. Examples:
+- `@jarvis` - Use a custom name
+- `@assistant` - Generic assistant name
+- `@bot` - Simple bot trigger
+
+Leave unset to use the default `@remote-agent`.
+
 **Usage:**
 
 Interact by @mentioning `@remote-agent` in issues or PRs:
