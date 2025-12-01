@@ -65,11 +65,7 @@ async function main(): Promise<void> {
   let github: GitHubAdapter | null = null;
   if (process.env.GITHUB_TOKEN && process.env.WEBHOOK_SECRET) {
     const callsign = process.env.GITHUB_CALLSIGN; // Optional - will use default if not set
-    github = new GitHubAdapter(
-      process.env.GITHUB_TOKEN,
-      process.env.WEBHOOK_SECRET,
-      callsign
-    );
+    github = new GitHubAdapter(process.env.GITHUB_TOKEN, process.env.WEBHOOK_SECRET, callsign);
     await github.start();
   } else {
     console.log('[GitHub] Adapter not initialized (missing GITHUB_TOKEN or WEBHOOK_SECRET)');
@@ -127,7 +123,7 @@ async function main(): Promise<void> {
       const stats = lockManager.getStats();
       res.json({
         status: 'ok',
-        ...stats
+        ...stats,
       });
     } catch (_error) {
       res.status(500).json({ status: 'error', reason: 'Failed to get stats' });
