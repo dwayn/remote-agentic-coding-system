@@ -58,7 +58,9 @@ export class GitHubAdapter implements IPlatformAdapter {
   constructor(token: string, webhookSecret: string, callsign?: string) {
     this.octokit = new Octokit({ auth: token });
     this.webhookSecret = webhookSecret;
-    this.callsign = callsign || process.env.GITHUB_CALLSIGN || '@remote-agent';
+    // Add @ prefix for GitHub mention format
+    const rawCallsign = callsign || process.env.CALLSIGN || 'remote-agent';
+    this.callsign = '@' + rawCallsign;
     console.log('[GitHub] Adapter initialized');
     console.log(`[GitHub] Using callsign: ${this.callsign}`);
   }

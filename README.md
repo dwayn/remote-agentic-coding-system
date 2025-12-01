@@ -325,18 +325,19 @@ GITHUB_STREAMING_MODE=batch  # batch (default) | stream
 
 **For streaming mode details, see [Advanced Configuration](#advanced-configuration).**
 
-**GitHub Agent Callsign (Optional):**
+**Agent Callsign (Optional):**
 
 ```bash
-GITHUB_CALLSIGN=@remote-agent  # Default: @remote-agent
+CALLSIGN=remote-agent  # Default: remote-agent
 ```
 
 Customize the mention trigger for GitHub comments. Examples:
-- `@jarvis` - Use a custom name
-- `@assistant` - Generic assistant name
-- `@bot` - Simple bot trigger
+- `jarvis` - Use a custom name
+- `assistant` - Generic assistant name
+- `bot` - Simple bot trigger
 
-Leave unset to use the default `@remote-agent`.
+Note: The GitHub adapter automatically adds the `@` prefix, so specify the callsign without it.
+Leave unset to use the default `remote-agent` (becomes `@remote-agent` in GitHub).
 
 **Usage:**
 

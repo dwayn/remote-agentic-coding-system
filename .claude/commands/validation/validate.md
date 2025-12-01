@@ -488,7 +488,7 @@ echo "Issue number: ${ISSUE_NUMBER}"
 
 ### 6.2 Add @remote-agent Comment
 
-<!-- Examples use default callsign @remote-agent. Configure via GITHUB_CALLSIGN env var. -->
+<!-- Examples use default callsign @remote-agent. Configure via CALLSIGN env var (GitHub adapter adds @ prefix). -->
 
 ```bash
 gh issue comment ${ISSUE_NUMBER} \

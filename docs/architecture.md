@@ -895,7 +895,7 @@ Save session ID for next message
 
 ### GitHub Webhook Flow
 
-> **Note:** The examples below use `@remote-agent` as the default callsign. This is configurable via the `GITHUB_CALLSIGN` environment variable.
+> **Note:** The examples below use `@remote-agent` as the default callsign. This is configurable via the `CALLSIGN` environment variable (the GitHub adapter adds the `@` prefix automatically).
 
 ```
 User comments: @<callsign> /command-invoke prime
