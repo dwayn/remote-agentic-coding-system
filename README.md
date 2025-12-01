@@ -340,7 +340,7 @@ Leave unset to use the default `@remote-agent`.
 
 **Usage:**
 
-Interact by @mentioning `@remote-agent` in issues or PRs:
+Interact by @mentioning your configured callsign (default: `@remote-agent`) in issues or PRs:
 
 ```
 @remote-agent can you analyze this bug?
