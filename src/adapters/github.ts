@@ -206,10 +206,13 @@ export class GitHubAdapter implements IPlatformAdapter {
   }
 
   /**
-   * Strip @remote-agent mention from text
+   * Strip configured callsign mention from text
    */
   private stripMention(text: string): string {
-    return text.replace(/@remote-agent[\s,:;]+/g, '').trim();
+    // Escape special regex characters for safety
+    const escapedCallsign = this.callsign.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`${escapedCallsign}[\\s,:;]+`, 'g');
+    return text.replace(regex, '').trim();
   }
 
   /**
