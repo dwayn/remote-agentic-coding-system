@@ -2,6 +2,7 @@
 # Usage: docker compose -f docker-compose.yml -f docker-compose.cloud.yml up -d
 
 services:
+  # NOTE: Ensure Caddyfile is configured with the correct PORT to match .env
   caddy:
     image: caddy:2-alpine
     container_name: remote-agent-caddy
@@ -23,7 +24,7 @@ services:
     # Override ports - Caddy proxies internally, no need to expose 3000
     ports: []
     expose:
-      - "3000"
+      - "${PORT:-3000}"  # Must match PORT in .env file
     restart: unless-stopped
     networks:
       - remote-agent-network
