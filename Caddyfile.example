@@ -1,9 +1,28 @@
 # Caddy configuration for Remote Coding Agent
 # Copy this file to 'Caddyfile' and update with your domain
+#
+# PORT CONFIGURATION:
+# If you changed PORT in your .env file, you must manually update the port number
+# in the reverse_proxy directive below to match your custom PORT value.
+#
+# Default PORT is 3000. Examples:
+#   - If PORT=3000 in .env (default), use: reverse_proxy app:3000
+#   - If PORT=3001 in .env, use: reverse_proxy app:3001
+#   - If PORT=8080 in .env, use: reverse_proxy app:8080
+#
+# The port number must match the internal container port specified in your .env file.
+# This is the port where the application runs INSIDE the Docker container.
+#
+# MULTIPLE INSTANCES:
+# If running multiple instances with different ports, each instance needs its own
+# Caddyfile with the corresponding port. For example:
+#   - Instance 1: app:3000 (PORT=3000 in .env)
+#   - Instance 2: app:3001 (PORT=3001 in .env)
 
 # Replace 'remote-agent.yourdomain.com' with your actual domain or subdomain
 remote-agent.yourdomain.com {
     # Reverse proxy to app container
+    # NOTE: Update port here if you changed PORT in .env (default: 3000)
     reverse_proxy app:3000
 
     # Optional: Access logs
@@ -20,10 +39,10 @@ remote-agent.yourdomain.com {
 
 # Alternative configuration with multiple domains:
 # remote-agent.yourdomain.com, alternative.domain.com {
-#     reverse_proxy app:3000
+#     reverse_proxy app:3000  # Update port if PORT changed in .env
 # }
 
 # Alternative: HTTP only (for testing, not recommended for production)
 # http://remote-agent.yourdomain.com {
-#     reverse_proxy app:3000
+#     reverse_proxy app:3000  # Update port if PORT changed in .env
 # }
