@@ -487,6 +487,9 @@ echo "Issue number: ${ISSUE_NUMBER}"
 ```
 
 ### 6.2 Add @remote-agent Comment
+
+<!-- Examples use default callsign @remote-agent. Configure via CALLSIGN env var (GitHub adapter adds @ prefix). -->
+
 ```bash
 gh issue comment ${ISSUE_NUMBER} \
   --body "@remote-agent Please address this issue by adding a \"Validation\" section to the README.md file. Create a new branch for this change and open a pull request when done. Include details about our testing approach in the validation section."

@@ -53,11 +53,16 @@ interface WebhookEvent {
 export class GitHubAdapter implements IPlatformAdapter {
   private octokit: Octokit;
   private webhookSecret: string;
+  private callsign: string;
 
-  constructor(token: string, webhookSecret: string) {
+  constructor(token: string, webhookSecret: string, callsign?: string) {
     this.octokit = new Octokit({ auth: token });
     this.webhookSecret = webhookSecret;
-    console.log('[GitHub] Adapter initialized with secret:', webhookSecret.substring(0, 8) + '...');
+    // Add @ prefix for GitHub mention format
+    const rawCallsign = callsign || process.env.CALLSIGN || 'remote-agent';
+    this.callsign = '@' + rawCallsign;
+    console.log('[GitHub] Adapter initialized');
+    console.log(`[GitHub] Using callsign: ${this.callsign}`);
   }
 
   /**
@@ -193,17 +198,23 @@ export class GitHubAdapter implements IPlatformAdapter {
   }
 
   /**
-   * Check if text contains @remote-agent mention
+   * Check if text contains mention of the configured callsign
    */
   private hasMention(text: string): boolean {
-    return /@remote-agent[\s,:;]/.test(text) || text.trim() === '@remote-agent';
+    // Escape special regex characters for safety
+    const escapedCallsign = this.callsign.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`${escapedCallsign}[\\s,:;]`);
+    return regex.test(text) || text.trim() === this.callsign;
   }
 
   /**
-   * Strip @remote-agent mention from text
+   * Strip configured callsign mention from text
    */
   private stripMention(text: string): string {
-    return text.replace(/@remote-agent[\s,:;]+/g, '').trim();
+    // Escape special regex characters for safety
+    const escapedCallsign = this.callsign.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`${escapedCallsign}[\\s,:;]+`, 'g');
+    return text.replace(regex, '').trim();
   }
 
   /**
@@ -375,10 +386,7 @@ ${userComment}`;
   /**
    * Handle incoming webhook event
    */
-  async handleWebhook(
-    payload: string,
-    signature: string
-  ): Promise<void> {
+  async handleWebhook(payload: string, signature: string): Promise<void> {
     // 1. Verify signature
     if (!this.verifySignature(payload, signature)) {
       console.error('[GitHub] Invalid webhook signature');
@@ -405,10 +413,11 @@ ${userComment}`;
     const isNewConversation = !existingConv.codebase_id;
 
     // 6. Get/create codebase (checks for existing first!)
-    const { codebase, repoPath, isNew: isNewCodebase } = await this.getOrCreateCodebaseForRepo(
-      owner,
-      repo
-    );
+    const {
+      codebase,
+      repoPath,
+      isNew: isNewCodebase,
+    } = await this.getOrCreateCodebaseForRepo(owner, repo);
 
     // 7. Get default branch
     const { data: repoData } = await this.octokit.rest.repos.get({ owner, repo });

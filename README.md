@@ -325,9 +325,23 @@ GITHUB_STREAMING_MODE=batch  # batch (default) | stream
 
 **For streaming mode details, see [Advanced Configuration](#advanced-configuration).**
 
+**Agent Callsign (Optional):**
+
+```bash
+CALLSIGN=remote-agent  # Default: remote-agent
+```
+
+Customize the mention trigger for GitHub comments. Examples:
+- `jarvis` - Use a custom name
+- `assistant` - Generic assistant name
+- `bot` - Simple bot trigger
+
+Note: The GitHub adapter automatically adds the `@` prefix, so specify the callsign without it.
+Leave unset to use the default `remote-agent` (becomes `@remote-agent` in GitHub).
+
 **Usage:**
 
-Interact by @mentioning `@remote-agent` in issues or PRs:
+Interact by @mentioning your configured callsign (default: `@remote-agent`) in issues or PRs:
 
 ```
 @remote-agent can you analyze this bug?

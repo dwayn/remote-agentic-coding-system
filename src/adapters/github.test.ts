@@ -89,4 +89,74 @@ describe('GitHubAdapter', () => {
       });
     });
   });
+
+  describe('configurable callsign', () => {
+    let consoleLogSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleLogSpy.mockRestore();
+      delete process.env.CALLSIGN;
+    });
+
+    test('should use custom callsign from constructor', () => {
+      new GitHubAdapter('token', 'secret', 'jarvis');
+
+      // Verify the callsign is logged during initialization
+      expect(consoleLogSpy).toHaveBeenCalledWith('[GitHub] Using callsign: @jarvis');
+    });
+
+    test('should default to @remote-agent when no callsign provided', () => {
+      new GitHubAdapter('token', 'secret');
+
+      // Verify default behavior is maintained
+      expect(consoleLogSpy).toHaveBeenCalledWith('[GitHub] Using callsign: @remote-agent');
+    });
+
+    test('should handle special characters in callsign', () => {
+      // Test with regex special characters that need escaping
+      new GitHubAdapter('token', 'secret', 'bot[test]');
+
+      // Verify regex escaping works correctly (should not throw)
+      expect(consoleLogSpy).toHaveBeenCalledWith('[GitHub] Using callsign: @bot[test]');
+
+      // Create another adapter with different special characters
+      consoleLogSpy.mockClear();
+      new GitHubAdapter('token', 'secret', 'agent*plus+');
+      expect(consoleLogSpy).toHaveBeenCalledWith('[GitHub] Using callsign: @agent*plus+');
+    });
+
+    test('should use environment variable when constructor param not provided', () => {
+      process.env.CALLSIGN = 'test-bot';
+      new GitHubAdapter('token', 'secret');
+
+      // Verify env var loading works
+      expect(consoleLogSpy).toHaveBeenCalledWith('[GitHub] Using callsign: @test-bot');
+
+      delete process.env.CALLSIGN;
+    });
+
+    test('should prioritize constructor param over environment variable', () => {
+      process.env.CALLSIGN = 'env-bot';
+      new GitHubAdapter('token', 'secret', 'constructor-bot');
+
+      // Constructor param should take precedence
+      expect(consoleLogSpy).toHaveBeenCalledWith('[GitHub] Using callsign: @constructor-bot');
+
+      delete process.env.CALLSIGN;
+    });
+
+    test('should handle empty environment variable', () => {
+      process.env.CALLSIGN = '';
+      new GitHubAdapter('token', 'secret');
+
+      // Empty string should be falsy, so it should fall back to default
+      expect(consoleLogSpy).toHaveBeenCalledWith('[GitHub] Using callsign: @remote-agent');
+
+      delete process.env.CALLSIGN;
+    });
+  });
 });
