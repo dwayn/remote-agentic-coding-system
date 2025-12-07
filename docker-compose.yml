@@ -3,10 +3,17 @@ services:
   # Command: docker-compose --profile external-db up
   app:
     profiles: ["external-db"]
-    build: .
+    # Configurable container name allows running multiple instances
+    container_name: ${CONTAINER_NAME:-remote-agent-app}
+    build:
+      context: .
+      args:
+        # Pass PORT to container so app binds to correct port internally
+        - PORT=${PORT:-3000}
     env_file: .env
     ports:
-      - "${PORT:-3000}:3000"
+      # Both host and container use same port for proper app binding
+      - "${PORT:-3000}:${PORT:-3000}"
     volumes:
       - ${WORKSPACE_PATH:-./workspace}:/workspace
     restart: unless-stopped
@@ -20,13 +27,20 @@ services:
   # Command: docker-compose --profile with-db up
   app-with-db:
     profiles: ["with-db"]
-    build: .
+    # Append -with-db suffix to avoid container name conflicts with external-db profile
+    container_name: ${CONTAINER_NAME:-remote-agent-app}-with-db
+    build:
+      context: .
+      args:
+        # Pass PORT to container so app binds to correct port internally
+        - PORT=${PORT:-3000}
     env_file: .env
     environment:
       # Override DATABASE_URL to use Docker service name
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/remote_coding_agent
     ports:
-      - "${PORT:-3000}:3000"
+      # Both host and container use same port for proper app binding
+      - "${PORT:-3000}:${PORT:-3000}"
     volumes:
       - ${WORKSPACE_PATH:-./workspace}:/workspace
     restart: unless-stopped
@@ -42,6 +56,8 @@ services:
   postgres:
     image: postgres:17
     profiles: ["with-db"]
+    # Configurable postgres container name allows sharing database across multiple app instances
+    container_name: ${POSTGRES_CONTAINER_NAME:-remote-agent-postgres}
     environment:
       POSTGRES_DB: remote_coding_agent
       POSTGRES_USER: postgres
