@@ -59,8 +59,9 @@ RUN mkdir -p /home/appuser/.codex
 RUN git config --global --add safe.directory /workspace && \
     git config --global --add safe.directory '/workspace/*'
 
-# Expose port
-EXPOSE 3000
+# Port configuration (can be overridden via docker-compose env_file)
+ARG PORT=3000
+EXPOSE ${PORT}
 
 # Setup Codex authentication from environment variables, then start app
 CMD ["sh", "-c", "npm run setup-auth && npm start"]
