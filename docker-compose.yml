@@ -63,7 +63,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Configurable data volume: uses named volume 'postgres_data' by default,
+      # or bind mount to custom path when POSTGRES_DATA_VOLUME is set to a directory path
+      - ${POSTGRES_DATA_VOLUME:-postgres_data}:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
