@@ -53,8 +53,10 @@ cp .env.example .env
 | `DATABASE_URL` | PostgreSQL connection | See database options below |
 | `GH_TOKEN` | Repository cloning | [Generate token](https://github.com/settings/tokens) with `repo` scope |
 | `GITHUB_TOKEN` | Same as `GH_TOKEN` | Use same token value |
-| `PORT` | HTTP server port | Default: `3000` (optional) |
+| `PORT` | HTTP server port (affects Docker, Caddy) | Default: `3000` (optional) |
+| `CONTAINER_NAME` | Docker container name | Default: `remote-agent-app` (optional) |
 | `WORKSPACE_PATH` | Clone destination | Default: `./workspace` (optional) |
+| `POSTGRES_DATA_VOLUME` | PostgreSQL data storage location | Default: `postgres_data` (named volume) or custom path (optional) |
 
 **GitHub Personal Access Token Setup:**
 
@@ -103,6 +105,107 @@ DATABASE_URL=postgresql://postgres:postgres@postgres:5432/remote_coding_agent
 ```
 
 Database will be created automatically when you start with `docker compose --profile with-db`.
+
+</details>
+
+<details>
+<summary><b>Running Multiple Instances</b></summary>
+
+You can run multiple instances of the application simultaneously with different configurations by using separate `.env` files and configuring unique `PORT` and `CONTAINER_NAME` values.
+
+**Use Case:** Run dev, staging, and production instances on the same machine, with options for shared or separate PostgreSQL databases.
+
+**Step 1: Create separate environment files**
+
+```bash
+# Development instance
+cp .env.example .env.dev
+# Edit .env.dev:
+#   PORT=3001
+#   CONTAINER_NAME=remote-agent-dev
+#   TELEGRAM_BOT_TOKEN=<dev_bot_token>
+
+# Production instance
+cp .env.example .env
+# Edit .env:
+#   PORT=3000
+#   CONTAINER_NAME=remote-agent-app
+#   TELEGRAM_BOT_TOKEN=<prod_bot_token>
+```
+
+**Step 2: Start instances with different env files**
+
+**Option A: Using the same PostgreSQL database (recommended for shared data):**
+
+```bash
+# Start shared postgres first
+docker compose --profile with-db up -d postgres
+
+# Start production instance
+docker compose --env-file .env --profile external-db up -d --build
+
+# Start development instance (in a new terminal or background)
+docker compose --env-file .env.dev --profile external-db up -d --build
+```
+
+**Option B: Using separate PostgreSQL databases (recommended for isolated testing):**
+
+```bash
+# Development instance with separate database
+# Edit .env.dev:
+#   PORT=3001
+#   CONTAINER_NAME=remote-agent-dev
+#   POSTGRES_CONTAINER_NAME=remote-agent-postgres-dev
+#   POSTGRES_PORT=5433
+#   POSTGRES_DATA_VOLUME=./data/postgres-dev
+#   # Note: Path must start with ./ or / to create a bind mount
+#   DATABASE_URL=postgresql://postgres:postgres@postgres:5432/remote_coding_agent
+
+# Production instance with separate database
+# Edit .env:
+#   PORT=3000
+#   CONTAINER_NAME=remote-agent-app
+#   POSTGRES_CONTAINER_NAME=remote-agent-postgres
+#   POSTGRES_PORT=5432
+#   POSTGRES_DATA_VOLUME=./data/postgres-prod
+#   DATABASE_URL=postgresql://postgres:postgres@postgres:5432/remote_coding_agent
+
+# Start development instance with its own database
+docker compose --env-file .env.dev --profile with-db up -d --build
+
+# Start production instance with its own database
+docker compose --env-file .env --profile with-db up -d --build
+```
+
+**Understanding Storage Options:**
+- **Named volume** (`postgres_data`): Docker-managed storage, recommended for most cases
+- **Bind mount** (`./data/postgres-dev`): Maps to a specific host directory, useful for backups or direct file access
+
+**Step 3: Verify both instances are running**
+
+```bash
+docker ps
+# Should show: remote-agent-app (port 3000) and remote-agent-dev (port 3001)
+# If using separate databases, also shows: remote-agent-postgres and remote-agent-postgres-dev
+
+# Test health checks
+curl http://localhost:3000/health  # Production
+curl http://localhost:3001/health  # Development
+```
+
+**Important Notes:**
+- Each instance must use a unique `PORT` and `CONTAINER_NAME`
+- **Shared Database (Option A):**
+  - Both instances can share the same `DATABASE_URL` (PostgreSQL database)
+  - The `POSTGRES_CONTAINER_NAME` can be set to the same value for sharing
+  - Data is shared across all instances
+- **Separate Databases (Option B):**
+  - Each instance uses a different `POSTGRES_CONTAINER_NAME` and `POSTGRES_PORT`
+  - Set `POSTGRES_DATA_VOLUME` to different paths (e.g., `./data/postgres-dev`, `./data/postgres-prod`)
+  - Data is completely isolated between instances
+  - Useful for testing migrations or features without affecting production data
+- If using Caddy (cloud deployment), update Caddyfile for each instance's PORT
+- Use different Telegram bots or GitHub webhooks for each instance
 
 </details>
 
