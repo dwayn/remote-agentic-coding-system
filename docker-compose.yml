@@ -76,4 +76,6 @@ services:
       retries: 5
 
 volumes:
+  # Named volume for PostgreSQL data (used when POSTGRES_DATA_VOLUME=postgres_data or unset)
+  # If POSTGRES_DATA_VOLUME is set to a path (e.g., ./data/postgres-dev), a bind mount is used instead
   postgres_data:

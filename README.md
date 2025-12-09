@@ -158,6 +158,7 @@ docker compose --env-file .env.dev --profile external-db up -d --build
 #   POSTGRES_CONTAINER_NAME=remote-agent-postgres-dev
 #   POSTGRES_PORT=5433
 #   POSTGRES_DATA_VOLUME=./data/postgres-dev
+#   # Note: Path must start with ./ or / to create a bind mount
 #   DATABASE_URL=postgresql://postgres:postgres@postgres:5432/remote_coding_agent
 
 # Production instance with separate database
@@ -175,6 +176,10 @@ docker compose --env-file .env.dev --profile with-db up -d --build
 # Start production instance with its own database
 docker compose --env-file .env --profile with-db up -d --build
 ```
+
+**Understanding Storage Options:**
+- **Named volume** (`postgres_data`): Docker-managed storage, recommended for most cases
+- **Bind mount** (`./data/postgres-dev`): Maps to a specific host directory, useful for backups or direct file access
 
 **Step 3: Verify both instances are running**
 
