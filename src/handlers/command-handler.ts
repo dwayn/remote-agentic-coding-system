@@ -135,6 +135,19 @@ Session:
         return { success: false, message: 'Usage: /setcwd <path>' };
       }
       const newCwd = args.join(' ');
+
+      // Validate new CWD is within workspace isolation (if applicable)
+      const workspacePath = db.getWorkspacePath(conversation);
+      const normalizedNewCwd = join(newCwd);
+      const normalizedWorkspace = join(workspacePath);
+
+      if (!normalizedNewCwd.startsWith(normalizedWorkspace)) {
+        return {
+          success: false,
+          message: `Error: Working directory must be within workspace: ${workspacePath}`,
+        };
+      }
+
       await db.updateConversation(conversation.id, { cwd: newCwd });
 
       // Add this directory to git safe.directory if it's a git repository
@@ -170,9 +183,9 @@ Session:
 
       const repoUrl: string = args[0];
       const repoName = repoUrl.split('/').pop()?.replace('.git', '') || 'unknown';
-      // Inside Docker container, always use /workspace (mounted volume)
-      const workspacePath = '/workspace';
-      const targetPath = `${workspacePath}/${repoName}`;
+      // Get workspace path (respecting isolation)
+      const workspacePath = db.getWorkspacePath(conversation);
+      const targetPath = join(workspacePath, repoName);
 
       try {
         console.log(`[Clone] Cloning ${repoUrl} to ${targetPath}`);

@@ -1,6 +1,7 @@
 /**
  * Database operations for conversations
  */
+import { join } from 'path';
 import { pool } from './connection';
 import { Conversation } from '../types';
 
@@ -40,7 +41,7 @@ export async function getOrCreateConversation(
 
 export async function updateConversation(
   id: string,
-  updates: Partial<Pick<Conversation, 'codebase_id' | 'cwd'>>
+  updates: Partial<Pick<Conversation, 'codebase_id' | 'cwd' | 'workspace_isolation'>>
 ): Promise<void> {
   const fields: string[] = [];
   const values: (string | null)[] = [];
@@ -54,6 +55,10 @@ export async function updateConversation(
     fields.push(`cwd = $${i++}`);
     values.push(updates.cwd);
   }
+  if (updates.workspace_isolation !== undefined) {
+    fields.push(`workspace_isolation = $${i++}`);
+    values.push(updates.workspace_isolation);
+  }
 
   if (fields.length === 0) {
     return; // No updates
@@ -66,4 +71,18 @@ export async function updateConversation(
     `UPDATE remote_agent_conversations SET ${fields.join(', ')} WHERE id = $${i}`,
     values
   );
+}
+
+/**
+ * Get the effective workspace path for a conversation
+ * Respects workspace isolation if set
+ */
+export function getWorkspacePath(
+  conversation: Conversation,
+  globalWorkspace: string = process.env.WORKSPACE_PATH || './workspace'
+): string {
+  if (conversation.workspace_isolation) {
+    return join(globalWorkspace, '.isolated', conversation.workspace_isolation);
+  }
+  return globalWorkspace;
 }

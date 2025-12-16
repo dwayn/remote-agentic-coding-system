@@ -11,6 +11,7 @@ import express from 'express';
 import { TelegramAdapter } from './adapters/telegram';
 import { TestAdapter } from './adapters/test';
 import { GitHubAdapter } from './adapters/github';
+import { SlackAdapter } from './adapters/slack';
 import { handleMessage } from './orchestrator/orchestrator';
 import { pool } from './db/connection';
 import { ConversationLockManager } from './utils/conversation-lock';
@@ -69,6 +70,31 @@ async function main(): Promise<void> {
     await github.start();
   } else {
     console.log('[GitHub] Adapter not initialized (missing GITHUB_TOKEN or WEBHOOK_SECRET)');
+  }
+
+  // Initialize Slack adapter (conditional)
+  let slack: SlackAdapter | null = null;
+  if (
+    process.env.SLACK_BOT_TOKEN &&
+    process.env.SLACK_APP_TOKEN &&
+    process.env.SLACK_SIGNING_SECRET
+  ) {
+    const streamingMode = (process.env.SLACK_STREAMING_MODE || 'stream') as 'stream' | 'batch';
+    slack = new SlackAdapter(
+      process.env.SLACK_BOT_TOKEN,
+      process.env.SLACK_APP_TOKEN,
+      process.env.SLACK_SIGNING_SECRET,
+      streamingMode
+    );
+
+    // Set up event handlers with lock manager
+    slack.setupEventHandlers(lockManager);
+
+    await slack.start();
+  } else {
+    console.log(
+      '[Slack] Adapter not initialized (missing SLACK_BOT_TOKEN, SLACK_APP_TOKEN, or SLACK_SIGNING_SECRET)'
+    );
   }
 
   // Setup Express server
@@ -198,6 +224,8 @@ async function main(): Promise<void> {
   const shutdown = (): void => {
     console.log('[App] Shutting down gracefully...');
     telegram.stop();
+    if (slack) slack.stop();
+    if (github) github.stop();
     pool.end().then(() => {
       console.log('[Database] Connection pool closed');
       process.exit(0);
@@ -208,7 +236,9 @@ async function main(): Promise<void> {
   process.once('SIGTERM', shutdown);
 
   console.log('[App] Remote Coding Agent is ready!');
-  console.log('[App] Send messages to your Telegram bot to get started');
+  if (telegram) console.log('[App] Telegram bot active - send messages to get started');
+  if (slack) console.log('[App] Slack bot active - invite to channels to get started');
+  if (github) console.log('[App] GitHub webhook active - @mention in issues/PRs to get started');
   console.log('[App] Test endpoint available: POST http://localhost:' + port + '/test/message');
 }
 
